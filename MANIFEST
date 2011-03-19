@@ -1,0 +1,9 @@
+Changes
+MANIFEST
+Makefile.PL
+README
+lib/Pod/Cats.pm
+t/00-load.t
+t/manifest.t
+t/pod-coverage.t
+META.yml                                 Module meta-data (added by MakeMaker)

@@ -1,0 +1,136 @@
+Pod::Cats
+
+Pod::Cats is a POD-like markup language. It takes the basic concepts of POD and
+both extends and generalises them.
+
+Pod::Cats has five basic structures, three of which are the same as in POD. For
+each type, where a vagary is described, this is the part of the syntax that is
+expected to be handled by the subclass that you are obviously going to write.
+The module's docs describe how to do that.
+
+1. Paragraphs
+-------------
+
+A paragraph is any block of text surrounded by blank lines or the start or end
+of the file. If the paragraph is not one of the other paragraph types, it is
+treated as a solid block of text.
+
+If it looks like the paragraph should have ended but there is not a blank line,
+it is treated as a syntax error.
+
+2. Verbatim
+-----------
+
+Any paragraph whose lines start with whitespace is treated as a verbatim
+paragraph. That means that spacing and line breaks are preserved. The verbatim
+paragraph continues for as long as the whitespace indentation remains
+consistent. For convenience, since some editors are too clever by half, if a
+verbatim paragraph contains a blank line but another verbatim paragraph with the
+same indentation is found immediately afterwards, they are concatenated and the
+blank line is treated as part of it. To separate them, simply put Z<> on its own
+line between them.
+
+3. Tags
+-------
+
+The tag paragraph starts with the = symbol as the first character of the line,
+followed by any number of non-whitespace characters. This string (between the =
+and the first whitespace) is considered the tag *name*. Anything from here to
+the end of the paragraph is considered the tag *content*.
+
+4. Blocks
+---------
+
+The block has the same structure as the tag, except instead of starting with =,
+it starts with +. The rules are otherwise the same. The difference with a block
+paragraph is that it ends with an equivalent line starting with -. This closing
+paragraph accepts nothing besides having the same name as the + paragraph that
+opened it.
+
+It is an error to open a block with + without closing it with a - paragraph, or
+to use a - paragraph that does not match the last-opened + paragraph.
+
+4. Entities
+-----------
+
+Entities are not paragraphs but inline tags. They have the format Z<>, which is
+any letter followed by a balanced set of < >, with no space after the letter.
+Anything contained between the < > characters is considered the content of the
+entity.
+
+To allow the content to have either of those characters in it, you may use as
+many consecutive brackets as required, as long as they balance. Z<< >> Z<<< >>>
+etc.
+
+Z<> itself is a special case and serves to do nothing. That is, it is a purely
+syntactical entity that is usually used to prevent other syntax from appearing
+to be syntax.
+
+EXAMPLE
+
+=head1 This is a heading, like in POD.
+
++intro This is the opening to the introduction.
+
+This is the first paragraph of the introduction.
+
+This is the second paragraph. The line break
+will be ignored because there is no blank line.
+
+-intro
+
+This paragraph is not inside a block.
+
+  This paragraph is verbatim.
+  That means whitespace, including line breaks,
+  will be preserved. When the content is passed
+  to the subclass,
+    2 spaces will be removed from the start of each line.
+    That means these lines will still have 2 spaces,
+  but this one will not.
+
+This paragraph contains what I have defined to mean I<italics>. The word
+"italics" will be passed to my entity handler associated with the letter I, and
+I will deal with it myself.
+
+INSTALLATION
+
+To install this module, run the following commands:
+
+	perl Makefile.PL
+	make
+	make test
+	make install
+
+SUPPORT AND DOCUMENTATION
+
+After installing, you can find documentation for this module with the
+perldoc command.
+
+    perldoc Podcats::Markup
+
+You can also look for information at:
+
+    RT, CPAN's request tracker
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Podcats-Markup
+
+    AnnoCPAN, Annotated CPAN documentation
+        http://annocpan.org/dist/Podcats-Markup
+
+    CPAN Ratings
+        http://cpanratings.perl.org/d/Podcats-Markup
+
+    Search CPAN
+        http://search.cpan.org/dist/Podcats-Markup/
+
+
+LICENSE AND COPYRIGHT
+
+Copyright (C) 2010 Altreus
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation; or the Artistic License.
+
+See http://dev.perl.org/licenses/ for more information.
+
