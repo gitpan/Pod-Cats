@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Pod-Cats
-version:            0.02
+version:            0.03
 abstract:           The POD-like markup language written for podcats.in
 author:
     - Altreus <altreus@perl.org>

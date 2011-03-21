@@ -1,0 +1,95 @@
+Introducing Pod::Cats
+
+=head1 Pod::Cats
+
+Pod::Cats is a new markup language based on POD - Perl's Plain Old Documentation
+format. Pod::Cats is similar to POD but incompatible; having said that, it is
+possible to write a POD document using Pod::Cats. It is probably better just to
+use POD though.
+
+=head1 New stuff
+
+The format of POD is kept, largely, but the things that do things no longer do
+the things they do. That is, C<=head1> is no longer a header; C[C<>] is no
+longer code. The only exception is that C[Z<>] remains a no-op, divider entity.
+
+Now, all entities of the format C<letter> C[<] C[>] are considered arbitrary
+entities, and it is up to the user to define what they mean. Hence it is
+possible to redefine them all to mean what they do in POD and you get POD back.
+
+Entities do not have to accept C[<>] as their delimiters. It is now possible to
+set a list of delimiters that will be accepted after the letter; any nested
+entities will then have to use the same delimiters to be parsed as entities. You
+can still use multiple of the same delimiter to surround your text: however you
+do it, the nested entities must use exactly the same ones or not be parsed.
+
+Commands still begin with C<=> and the text immediately following is referred to
+as the command itself, up to the first space. The rest is considered arguments
+to the command. Since the commands can be arbitrary, you can basically do
+anything with them.
+
+There is a new type of command that starts with C<+>. This is balanced by one
+starting with C<-> using the same command. Between these two is considered to be
+a separate section of the type named by the command. Think of it like C<=over>
+and C<=back> from the original POD, except the section is named, takes
+arguments, and is syntactically required to balance correctly.
+
+Verbatim paragraphs behave the same way as they always did: consistent
+whitespace indentation produces a solid paragraph of verbatim text, which is not
+parsed.
+
+=head1 Example
+
+The source of this post is written in Pod::Cats. Here it is, without the obvious
+recursion that would entail:
+
+    Introducing Pod::Cats
+
+    =head1 Pod::Cats
+
+    Pod::Cats is a new markup language based on POD - Perl's Plain Old Documentation
+    format. Pod::Cats is similar to POD but incompatible; having said that, it is
+    possible to write a POD document using Pod::Cats. It is probably better just to
+    use POD though.
+
+    =head1 New stuff
+
+    The format of POD is kept, largely, but the things that do things no longer do
+    the things they do. That is, C<=head1> is no longer a header; C[C<>] is no
+    longer code. The only exception is that C[Z<>] remains a no-op, divider entity.
+
+    Now, all entities of the format C<letter> C[<] C[>] are considered arbitrary
+    entities, and it is up to the user to define what they mean. Hence it is
+    possible to redefine them all to mean what they do in POD and you get POD back.
+
+    Entities do not have to accept C[<>] as their delimiters. It is now possible to
+    set a list of delimiters that will be accepted after the letter; any nested
+    entities will then have to use the same delimiters to be parsed as entities. You
+    can still use multiple of the same delimiter to surround your text: however you
+    do it, the nested entities must use exactly the same ones or not be parsed.
+
+    Commands still begin with C<=> and the text immediately following is referred to
+    as the command itself, up to the first space. The rest is considered arguments
+    to the command. Since the commands can be arbitrary, you can basically do
+    anything with them.
+
+    There is a new type of command that starts with C<+>. This is balanced by one
+    starting with C<-> using the same command. Between these two is considered to be
+    a separate section of the type named by the command. Think of it like C<=over>
+    and C<=back> from the original POD, except the section is named, takes
+    arguments, and is syntactically required to balance correctly.
+
+    Verbatim paragraphs behave the same way as they always did: consistent
+    whitespace indentation produces a solid paragraph of verbatim text, which is not
+    parsed.
+
+    =head1 Example
+
+    The source of this post is written in Pod::Cats. Here it is, without the obvious
+    recursion that would entail:
+
+        LOL RECURSION
+
+The docs for this module can be found on CPAN right
+L<http://search.cpan.org/perldoc?Pod::Cats|here>, whence you can also download
+the distribution if you like.

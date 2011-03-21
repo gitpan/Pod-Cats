@@ -14,7 +14,7 @@ Pod::Cats - The POD-like markup language written for podcats.in
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =head1 DESCRIPTION
 
@@ -38,7 +38,7 @@ There are three command paragraphs, which are defined by their first character.
 This character must be in the first column; whitespace at the start of a
 paragraph is syntactically relevant.
 
-=over
+=over 4
     
 =item C<=COMMAND CONTENT>
 X<command>
@@ -49,7 +49,7 @@ like that. It is roughly equivalent to the self-closing tag in XML. B<CONTENT>
 is just text that may or may not be present. The relationship of B<CONTENT> to
 the B<COMMAND> is for you to define, as is the meaning of B<COMMAND>.
 
-When a C<=COMMAND> block is completed, it is passed to L<handle_command>.
+When a C<=COMMAND> block is completed, it is passed to L</handle_command>.
 
 =item C<+NAME CONTENT>
 X<begin>
@@ -58,14 +58,14 @@ A line beginning with C<+> opens a named block; its name is B<NAME>. Similar to
 C<=COMMAND>, the B<CONTENT> is arbitrary, and its relationship to the B<NAME> of
 the block is up to you.
 
-When this is encountered you are invited to L<handle_begin>.
+When this is encountered you are invited to L</handle_begin>.
 
 =item C<-NAME>
 X<end>
 
 A line beginning with C<-> is the end of the named block previously started.
 These must match in reverse order to the C<+> block with the matching B<NAME> -
-basically the same as XML's <NAME></NAME> pairs. It is passed to L<handle_end>,
+basically the same as XML's <NAME></NAME> pairs. It is passed to L</handle_end>,
 and unlike the other two command paragraphs it accepts no content.
 
 =back
@@ -73,10 +73,7 @@ and unlike the other two command paragraphs it accepts no content.
 Then there are two types of text paragraph, for which the text is not
 syntactically relevant but whitespace still is:
 
-
-Then there is the standard POD entity, except with extensions:
-
-=over
+=over 4
 
 =item Verbatim paragraphs
 
@@ -96,16 +93,16 @@ any line is removed from all lines. This allows you to indent other lines (even
 the first one) relative to the syntactic whitespace that defines the verbatim
 paragraph without your indentation being parsed out.
 
-L<Entities> are not parsed in verbatim paragraphs, as expected.
+L</Entities> are not parsed in verbatim paragraphs, as expected.
 
-When a verbatim paragraph has been collated, it is passed to L<handle_verbatim>.
+When a verbatim paragraph has been collated, it is passed to L</handle_verbatim>.
 
 =item Paragraphs
 
 Everything that doesn't get caught by one of the above rules is deemed to be a
 plain text paragraph. As with all paragraphs, a single line break is removed by
 the parser and a blank line causes the paragraph to be processed. It is passed
-to L<handle_paragraph>.
+to L</handle_paragraph>.
 
 =back
 
@@ -127,12 +124,12 @@ entity: C<<< XZ<><<>> >>>; in Pod::Cats you can use any delimiter, removing the
 requirement to duplicate it at all: C<< C[ XZ<><> ] >>.
 
 Once an entity has begun, nested entities are only considered if the delimiters
-are the same as those used for the outer entity: C<B[ I[bold-italic] ]>
-C<B[IZ<><bold>]>.
+are the same as those used for the outer entity: C<< B[ I[bold-italic] ] >>;
+C<< B[IZ<><bold>] >>.
 
 Apart from the special entity C<< ZZ<><> >>, the letter used for the entity has
 no inherent meaning to Pod::Cats. The parsed entity is provided to
-L<handle_entity>. C<< ZZ<><> >> retains its meaning from POD, which is to be a
+L</handle_entity>. C<< ZZ<><> >> retains its meaning from POD, which is to be a
 zero-width 'divider' to break up things that would otherwise be considered
 syntax.
 
@@ -142,7 +139,7 @@ syntax.
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head2 new
 
@@ -204,9 +201,8 @@ sub parse_file {
 
 =head2 parse_lines
 
-L<parse> and L<parse_file> both come here, which just takes the markup text
-as an array of lines and parses them. So it just takes the result of a
-slurp or a split /\n/ and parses it. This is where the logic happens. It is
+L</parse> and L</parse_file> both come here, which just takes the markup text
+as an array of lines and parses them. This is where the logic happens. It is
 exposed publicly so you can parse an array of your own if you want.
 
 =cut
@@ -380,8 +376,8 @@ sub _postprocess_paragraphs {
 =head2 handle_verbatim
 
 The verbatim paragraph as it was in the code, except with the minimum amount of
-whitespace stripped from each line as described in L<verbatim>. Passed in as a
-single string with line breaks preserved.
+whitespace stripped from each line as described in L<Verbatim paragraphs|/verbatim>. 
+Passed in as a single string with line breaks preserved.
 
 Do whatever you want. Default is to return the string straight back atcha.
 
@@ -394,10 +390,9 @@ sub handle_verbatim {
 
 =head2 handle_entity
 
-Passed the letter of the L<entity> and its content. The content may be multiple
-things; the rest of @_ contains them in order. This is to allow for nested
-entities. The return values of each nested entity and any plain text in between
-them are contained in the rest of @_.
+Passed the letter of the L<entity|/entity> as the first argument and its content
+as the rest of @_. The content will alternate between plain text and the return
+value of this function for any nested entities inside this one.
 
 For this reason you should return a scalar from this method, be it text or a
 ref. The default is to concatenate @_, thus replacing entities with their
@@ -435,14 +430,13 @@ sub _process_entities {
 
 =head2 handle_paragraph
 
-The contents of the paragraph are provided as an array, i.e. all of @_
-represents the separate sections of the paragraph. The paragraph's sections will
-alternate between a string of plain text and the return value of
-L<handle_entity>, assuming it has at least one of each. Note that a paragraph
-may start with an entity so the first value of @_ is not necessarily a string.
+The paragraph is split into sections that alternate between plain text and the
+return values of L<handle_entity|/handle_entity> as described above. These
+sections are arrayed in @_. Note that the paragraph could start with an entity.
 
 By default it returns @_ concatenated, since the default behaviour of
-L<handle_entity> is to remove the formatting but keep the contents.
+L<handle_entity|/handle_entity> is to remove the formatting but keep the 
+contents.
 
 =cut
 
@@ -452,9 +446,10 @@ sub handle_paragraph {
 
 =head2 handle_command
 
-When a L<command> is encountered it comes here. The first argument is the
-B<COMMAND> (from B<=COMMAND>); the rest of the arguments follow the rules of
-paragraphs and alternate between plain text and parsed entities.
+When a L<command|/command> is encountered it comes here. The first argument is 
+the B<COMMAND> (from B<=COMMAND>); the rest of the arguments follow the rules of
+L<paragraphs|handle_paragraph> and alternate between plain text and parsed 
+entities.
 
 By default it returns @_ concatenated, same as paragraphs.
 
@@ -466,8 +461,8 @@ sub handle_command {
 
 =head2 handle_begin
 
-This is handled the same as L<handle_command>, except it is called when the
-L<begin> command is encountered. The same rules apply.
+This is handled the same as L<handle_command|/handle_command>, except it is called when a
+L</begin|begin> command is encountered. The same rules apply.
 
 =cut
 
@@ -477,7 +472,7 @@ sub _handle_begin {
 
 =head2 handle_end
 
-The counterpart to the begin handler. This is called when the L<end> paragraph
+The counterpart to the begin handler. This is called when the L</end> paragraph
 is encountered. The parser will already have discovered whether your begins and
 ends are not balanced so you don't need to worry about that.
 
@@ -524,7 +519,7 @@ do so. So a lot of the credit should go to him!
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2010 Altreus.
+Copyright 2011 Altreus.
 
 This module is released under the MIT licence.
 

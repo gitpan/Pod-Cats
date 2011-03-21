@@ -1,0 +1,13 @@
+That is, C<=head1> is no longer a header; C[C<>] is no
+longer code. The only exception is that C[Z<>] remains a no-op, divider entity.
+
+Now, all entities of the format C<letter> C[<] C[>] are considered arbitrary
+entities, and it is up to the user to define what they mean. Hence it is
+possible to redefine them all to mean what they do in POD and you get POD back.
+
+Entities do not have to accept C[<>] as their delimiters. It is now possible to
+set a list of delimiters that will be accepted after the letter; any nested
+entities will then have to use the same delimiters to be parsed as entities. You
+can still use multiple of the same delimiter to surround your text: however you
+do it, the nested entities must use exactly the same ones or not be parsed.
+
