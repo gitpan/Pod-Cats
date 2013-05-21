@@ -8,6 +8,7 @@ t/00-load.t
 t/10-commands.t
 t/20-entities.t
 t/21-entity-delimiters.t
+t/30-verbatim.t
 t/manifest.t
 t/pod-coverage.t
 t/pod.t
@@ -15,3 +16,4 @@ test-entities.pod
 test-pod-cats.pod
 test-verbatim.pod
 META.yml                                 Module meta-data (added by MakeMaker)
+META.json                                Module JSON meta-data (added by MakeMaker)

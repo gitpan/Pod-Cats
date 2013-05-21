@@ -5,7 +5,7 @@ use strict;
 use 5.010;
 
 use Pod::Cats::Parser::MGC;
-use List::Util qw(min);
+use List::Util qw(min max);
 use Carp;
 
 =head1 NAME
@@ -14,7 +14,7 @@ Pod::Cats - The POD-like markup language written for podcats.in
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =head1 DESCRIPTION
 
@@ -131,7 +131,9 @@ Apart from the special entity C<< ZZ<><> >>, the letter used for the entity has
 no inherent meaning to Pod::Cats. The parsed entity is provided to
 L</handle_entity>. C<< ZZ<><> >> retains its meaning from POD, which is to be a
 zero-width 'divider' to break up things that would otherwise be considered
-syntax.
+syntax. You are not given C<< ZZ<><> >> to handle, and C<< ZZ<><> >> itself will
+produce undef if it is the only content to an element. A paragraph comprising solely 
+C<< ZZ<><> >> will never generate a parsed paragraph; it will be skipped.
 
 =back
 
@@ -139,7 +141,7 @@ syntax.
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =head2 new
 
@@ -227,7 +229,7 @@ sub parse_lines {
     shift @lines while $lines[0] !~ /\S/; # shift off leading blank lines!
 
     for my $line (@lines) {
-        given ($line) {
+        for ($line) {
             when (/^\s*$/) {
                 $self->_process_buffer(@buffer);
                 @buffer = ();
@@ -282,7 +284,7 @@ sub _process_buffer {
         type => $buffer_type
     };
 
-    given ($buffer_type) {
+    for ($buffer_type) {
         when('paragraph') {
             # concatenate the lines and normalise whitespace.
             my $para = join " ", @buffer;
@@ -290,8 +292,7 @@ sub _process_buffer {
         }
         when('verbatim') {
             # find the lowest level of indentation in this buffer and strip it
-            my $indent_level = min_by { /^(\s+)/; length $1 } @buffer;
-            s/^\s{$indent_level}// for @buffer;
+            my $indent_level = min map { /^(\s+)/; length $1 } @buffer;
             $node->{content} = join "\n", @buffer;
             $node->{indent_level} = $indent_level;
         }
@@ -320,21 +321,25 @@ sub _postprocess_dom {
         # Don't change the last node until we stop finding verbatims.
         # That way we can keep using it as the concatenated node.
         if ($last_node->{type} eq 'verbatim' && $node->{type} eq 'verbatim') {
-            my $to_remove = 
-                max( $last_node->{indent_level}, $node->{indent_level})
-              - min( $last_node->{indent_level}, $node->{indent_level});
-            $last_node->{content} .= "\n" . $node->{content};
+            # The smallest indent level is considered the level for the merged node.
+            $last_node->{indent_level} =
+                min( $last_node->{indent_level}, $node->{indent_level});
+            $last_node->{content} .= "\n\n" . $node->{content};
 
-            # If the min indent has gone down, raze more spaces off.
-            $last_node->{content} =~ s/^\s{$to_remove}//mg if $to_remove;
         } else {
             # Node type changed, push old one
+            if ($last_node->{type} eq 'verbatim') {
+                my $to_remove = $last_node->{indent_level};
+                print "[[$to_remove]] [[$last_node->{content}]]\n";
+                $last_node->{content} =~ s/^ {$to_remove}//mg if $to_remove;
+            }
             push @new_dom, $last_node;
             $last_node = $node;
         }
     }
 
     push @new_dom, $last_node;
+    $self->{dom} = \@new_dom;
 }
 
 # Now is the sax-like bit, where it goes through and fires the user's events for
@@ -344,9 +349,11 @@ sub _postprocess_paragraphs {
     my $self = shift;
 
     for my $node (@{ $self->{dom} }) {
-        given ($node->{type}) {
+        for ($node->{type}) {
             when ('paragraph') {
-                $node->{content} = $self->_process_entities($node->{content});
+                # If _process_entities gives us undef, that was a single Z<>, which should not
+                # generate a new paragraph.
+                $node->{content} = $self->_process_entities($node->{content}) // next;
                 $self->handle_paragraph($node->{content});
             }
             when ('begin') {
@@ -425,7 +432,7 @@ sub _process_entities {
     my $parsed = $self->{parser}->from_string( $para );
     $parsed = $parsed->[0]; 
 
-    return $parsed;
+    return defined $parsed ? $parsed : ();
 }
 
 =head2 handle_paragraph
@@ -519,7 +526,7 @@ do so. So a lot of the credit should go to him!
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2011 Altreus.
+Copyright 2013 Altreus.
 
 This module is released under the MIT licence.
 

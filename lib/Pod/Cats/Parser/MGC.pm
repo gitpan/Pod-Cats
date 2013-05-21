@@ -4,11 +4,9 @@ use warnings;
 use 5.010;
 
 use parent qw(Parser::MGC);
-use Class::C3;
 
 sub new {
-    my $self = next::method(@_);
-    shift;
+    my $self = shift->SUPER::new(@_);
     my %o = @_;
     $self->{obj} = $o{object} or die "Expected argument 'object'";
     $self->{delimiters} = $o{delimiters} || "<";
@@ -45,7 +43,7 @@ sub parse {
                     }
                 ) ] unless $tag eq 'Z';
 
-                return '';
+                return undef;
             },
 
             sub { 
