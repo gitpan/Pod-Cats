@@ -14,7 +14,7 @@ Pod::Cats - The POD-like markup language written for podcats.in
 
 =head1 VERSION
 
-Version 0.04
+Version 0.05
 
 =head1 DESCRIPTION
 
@@ -141,7 +141,7 @@ C<< ZZ<><> >> will never generate a parsed paragraph; it will be skipped.
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =head2 new
 
@@ -330,7 +330,6 @@ sub _postprocess_dom {
             # Node type changed, push old one
             if ($last_node->{type} eq 'verbatim') {
                 my $to_remove = $last_node->{indent_level};
-                print "[[$to_remove]] [[$last_node->{content}]]\n";
                 $last_node->{content} =~ s/^ {$to_remove}//mg if $to_remove;
             }
             push @new_dom, $last_node;
