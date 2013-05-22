@@ -14,7 +14,7 @@ Pod::Cats - The POD-like markup language written for podcats.in
 
 =head1 VERSION
 
-Version 0.05
+Version 0.06
 
 =head1 DESCRIPTION
 
@@ -141,7 +141,7 @@ C<< ZZ<><> >> will never generate a parsed paragraph; it will be skipped.
 
 =cut
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 =head2 new
 
@@ -353,14 +353,14 @@ sub _postprocess_paragraphs {
                 # If _process_entities gives us undef, that was a single Z<>, which should not
                 # generate a new paragraph.
                 $node->{content} = $self->_process_entities($node->{content}) // next;
-                $self->handle_paragraph($node->{content});
+                $self->handle_paragraph(@{ $node->{content} });
             }
             when ('begin') {
                 $node->{content} = $self->_process_entities($node->{content});
                 # Check for balance later
                 push @{$self->{begin_stack}}, $node->{name};
 
-                $self->handle_begin($node->{name}, $node->{content});
+                $self->handle_begin($node->{name}, @{ $node->{content} // [] });
             }
             when ('end') {
                 warn "$node->{name} is ended out of sync!" 
@@ -370,7 +370,7 @@ sub _postprocess_paragraphs {
             }
             when ('command') {
                 $node->{content} = $self->_process_entities($node->{content});
-                $self->handle_command($node->{name}, $node->{content});
+                $self->handle_command($node->{name}, @{ $node->{content} // [] });
             }
             when ('verbatim') {
                 $self->handle_verbatim($node->{content});
@@ -413,7 +413,8 @@ You will never get the C<< ZZ<><> >> entity.
 =cut
 
 sub handle_entity {
-    shift; join ' ', @_;
+    shift; shift; 
+    join ' ', map $_ // '', @_;
 }
 
 # preprocess paragraph before giving it to the user. handle_entity is called
@@ -429,9 +430,9 @@ sub _process_entities {
     );
 
     my $parsed = $self->{parser}->from_string( $para );
-    $parsed = $parsed->[0]; 
 
-    return defined $parsed ? $parsed : ();
+    # Single return of undef was Z<>
+    return defined $parsed->[0] || @$parsed > 1 ? $parsed : ();
 }
 
 =head2 handle_paragraph
@@ -447,7 +448,7 @@ contents.
 =cut
 
 sub handle_paragraph {
-    shift; join ' ', @_;
+    shift; join ' ', map $_ // '', @_;
 }
 
 =head2 handle_command
@@ -462,7 +463,7 @@ By default it returns @_ concatenated, same as paragraphs.
 =cut
 
 sub handle_command {
-    shift; shift; join ' ', @_;
+    shift; shift; join ' ', map $_ // '', @_;
 }
 
 =head2 handle_begin
@@ -473,7 +474,7 @@ L</begin|begin> command is encountered. The same rules apply.
 =cut
 
 sub _handle_begin {
-    shift; shift; join ' ', @_;
+    shift; shift; join ' ', map $_ // '', @_;
 }
 
 =head2 handle_end
